@@ -1,50 +1,56 @@
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Article {
+    /**
+     * Super class of all website-specific articles
+     */
 
-    private String title, date, body, author;
-    private List<String> imgUrls = new ArrayList<>();
-
-    public Article(String title, String date, String body, String author, List<String> imgUrls) {
-        this.title = title;
-        this.date = date;
-        this.body = body;
-        this.author = author;
-        this.imgUrls = imgUrls;
-    }
-
-
-    public Article(String url) throws IOException{
-        Document doc = Jsoup.connect(url).get();
-        String title = doc.getElementsByClass("page_title").first().text();
-        String date = doc.getElementsByClass("story_date").first().text();
-        String author = doc.getElementById("article_body")
-                .getElementsByClass("story_author").first().text();
-        String body = doc.getElementById("article_holder").select("p").text();
-        this.title = title;
-        this.date = date;
-        this.body = body;
-        this.author = author;
-        //TODO: add all images
-        this.imgUrls.add(doc.getElementById("article_holder")
-                .getElementsByClass("image")
-                .select("img").attr("src"));
-    }
+    String url, title, date, body, author, headlineImage;
+    List<String> imgUrls, mediaUrls;
 
     @Override
     public String toString() {
+        String summary = (body.length() > 20 ? body.substring(0, 20): body);
         return "Article{" +
                 "title='" + title + '\'' +
                 ", date='" + date + '\'' +
                 ", author='" + author + '\'' +
-                ", imgUrls=" + imgUrls +
+                ", body= '" + "..." + summary + '\'' +
+                ", headlineImg =" + headlineImage + '\'' +
+                ", mediaUrls =" + mediaUrls +
                 '}';
     }
+
+    public String getUrl() {
+        return this.url;
+    }
+
+    public String getTitle() {
+        return this.title;
+    }
+
+    public String getDate() {
+        return this.date;
+    }
+
+    public String getBody() {
+        return this.body;
+    }
+
+    public String getAuthor() {
+        return this.author;
+    }
+
+    public String getHeadlineImage() {
+        return this.headlineImage;
+    }
+
+    public List<String> getImgUrls() {
+        return this.imgUrls;
+    }
+
+    public List<String> getMediaUrls() {
+        return this.mediaUrls;
+    }
+
 }

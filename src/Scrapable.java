@@ -1,13 +1,12 @@
+import java.util.List;
 import java.util.Map;
 
 public interface Scrapable {
 
-    Map get_headlines();
+    List<String> getHeadlines();
 
-    Map get_recent();
+    List<Article> getRecent();
 
-    Map get_article();
-
-    Map get_similar();
+    List<Article> getSimilar(Article a);
 
 }
