@@ -1,3 +1,5 @@
+package com.fscraper;
+
 import java.util.List;
 
 public class Article {
@@ -5,8 +7,8 @@ public class Article {
      * Super class of all website-specific articles
      */
 
-    String url, title, date, body, author, headlineImage;
-    List<String> imgUrls, mediaUrls;
+    protected String url, title, date, body, author, headlineImage;
+    protected List<String> imgUrls, mediaContent;
 
     @Override
     public String toString() {
@@ -17,7 +19,7 @@ public class Article {
                 ", author='" + author + '\'' +
                 ", body= '" + "..." + summary + '\'' +
                 ", headlineImg =" + headlineImage + '\'' +
-                ", mediaUrls =" + mediaUrls +
+                ", mediaUrls =" + mediaContent +
                 '}';
     }
 
@@ -49,8 +51,8 @@ public class Article {
         return this.imgUrls;
     }
 
-    public List<String> getMediaUrls() {
-        return this.mediaUrls;
+    public List<String> getMediaContent() {
+        return this.mediaContent;
     }
 
 }

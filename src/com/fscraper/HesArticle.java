@@ -1,3 +1,5 @@
+package com.fscraper;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -29,16 +31,17 @@ public class HesArticle extends Article{
         this.body = this.doc.getElementById("article_holder").select("p").text();
         this.imgUrls = fetchImages();
         this.headlineImage = this.imgUrls.get(0);
+        this.mediaContent = new ArrayList<>();
         if (this.hasMedia()){
             // Populate mediaUrls
             for(Element iframe: this.doc.getElementById("article_body").select("iframe")){
-                this.mediaUrls.add(iframe.attr("src"));
+                this.mediaContent.add(iframe.attr("src"));
             }
         }
     }
 
     // Returns list of url of article images.
-    List<String> fetchImages(){
+    private List<String> fetchImages(){
         List<String> result = new ArrayList<>();
         result.add(this.doc.getElementById("article_holder") // Main article image
                 .getElementsByClass("image")
@@ -56,13 +59,18 @@ public class HesArticle extends Article{
         return !this.doc.getElementById("article_body").select("iframe").isEmpty();
     }
 
-    public List<Article> fetchSimilar(){
-        // TODO: implement
-        return new ArrayList<>();
+
+    public List<HesArticle> fetchSimilar() throws IOException{
+        List<HesArticle> similars = new ArrayList<>();
+        Elements divs = this.doc.getElementById("entertainment_stripe_section1").select("div");
+        for (Element div: divs){
+            similars.add(new HesArticle(div.select("a").attr("href")));
+        }
+        return similars;
     }
 
-    // Returns a list of headlines in the format [{Title1, ImageUrl1, Body1, articleUrl1}, {Title2,..},..]
-    static List<HesArticle> getHeadlines() throws IOException{
+    // Returns a list of headline articles
+    static List<HesArticle> fetchHeadlines() throws IOException{
         List<HesArticle> result = new ArrayList<>();
         Document homedoc = Jsoup.connect(BASE_URL).get();
         Elements headlines = homedoc.getElementsByClass("headline_article_holder");
@@ -74,7 +82,8 @@ public class HesArticle extends Article{
         return result;
     }
 
-    static List<HesArticle> getRecent() throws IOException{
+    // Returns a list of most recent articles
+    static List<HesArticle> fetchRecent() throws IOException{
         List<HesArticle> result = new ArrayList<>();
         Document homedoc = Jsoup.connect(BASE_URL).get();
         Elements recentdivs = homedoc.select("div.latest_news_box");
