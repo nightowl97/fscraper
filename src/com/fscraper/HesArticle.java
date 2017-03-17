@@ -6,6 +6,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.security.spec.ECParameterSpec;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,9 +18,14 @@ public class HesArticle extends Article{
     public static final String BASE_URL = "http://www.hespress.com";
     private Document doc;
 
-    HesArticle(String url) throws IOException {
+    public HesArticle(String url){
         this.url = url;
-        this.doc = Jsoup.connect(url).get();
+        try {
+            this.doc = Jsoup.connect(url).get();
+        } catch (IOException e){
+            e.printStackTrace();
+//            throw new Exception("could not fetch article, check internet connection and URL");
+        }
         this.title = this.doc.getElementsByClass("page_title").first().text();
         this.date = this.doc.getElementsByClass("story_date").first().text();
         try {
@@ -30,7 +36,7 @@ public class HesArticle extends Article{
         }
         this.body = this.doc.getElementById("article_holder").select("p").text();
         this.imgUrls = fetchImages();
-        this.headlineImage = this.imgUrls.get(0);
+        this.headlineImage = (this.imgUrls.size() == 0 ? null : this.imgUrls.get(0));
         this.mediaContent = new ArrayList<>();
         if (this.hasMedia()){
             // Populate mediaUrls
@@ -43,9 +49,12 @@ public class HesArticle extends Article{
     // Returns list of url of article images.
     private List<String> fetchImages(){
         List<String> result = new ArrayList<>();
-        result.add(this.doc.getElementById("article_holder") // Main article image
-                .getElementsByClass("image")
-                .select("img").attr("src"));
+        Elements imgs = this.doc.getElementById("article_holder").getElementsByClass("image");
+        if (imgs.size() >= 1){
+            result.add(this.doc.getElementById("article_holder") // Main article image
+                    .getElementsByClass("image")
+                    .select("img").attr("src"));
+        }
         // Find all images nested in article paragraphs
         for (Element e: this.doc.getElementById("article_holder").select("p")){
             if (e.select("img").size() >= 1){
@@ -60,37 +69,50 @@ public class HesArticle extends Article{
     }
 
 
-    public List<HesArticle> fetchSimilar() throws IOException{
+    public List<HesArticle> fetchSimilar() {
         List<HesArticle> similars = new ArrayList<>();
-        Elements divs = this.doc.getElementById("entertainment_stripe_section1").select("div");
-        for (Element div: divs){
-            similars.add(new HesArticle(div.select("a").attr("href")));
+        Elements h3list = this.doc.getElementById("entertainment_stripe_section1").children().select("h3");
+        for (Element h3: h3list){
+            try {
+                HesArticle article = new HesArticle(h3.select("a").attr("abs:href"));
+                similars.add(article);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
         }
         return similars;
     }
 
     // Returns a list of headline articles
-    static List<HesArticle> fetchHeadlines() throws IOException{
+    public static List<HesArticle> fetchHeadlines() throws IOException{
         List<HesArticle> result = new ArrayList<>();
         Document homedoc = Jsoup.connect(BASE_URL).get();
         Elements headlines = homedoc.getElementsByClass("headline_article_holder");
-        for (Element e: headlines){
-            String articleUrl = e.select("span").last().select("a")
+        for (Element element: headlines){
+            String articleUrl = element.select("span").last().select("a")
                     .attr("abs:href");
-            result.add(new HesArticle(articleUrl));
+            try{
+                result.add(new HesArticle(articleUrl));
+            } catch (Exception e){
+                e.printStackTrace();
+            }
         }
         return result;
     }
 
     // Returns a list of most recent articles
-    static List<HesArticle> fetchRecent() throws IOException{
+    public static List<HesArticle> fetchRecent() throws IOException{
         List<HesArticle> result = new ArrayList<>();
         Document homedoc = Jsoup.connect(BASE_URL).get();
         Elements recentdivs = homedoc.select("div.latest_news_box");
-        for (Element e: recentdivs){
-            String recenturl = e.select("h3").first().select("a")
+        for (Element element: recentdivs){
+            String recenturl = element.select("h3").first().select("a")
                     .attr("abs:href");
-            result.add(new HesArticle(recenturl));
+            try {
+                result.add(new HesArticle(recenturl));
+            } catch (Exception e){
+                e.printStackTrace();
+            }
         }
         return result;
     }
